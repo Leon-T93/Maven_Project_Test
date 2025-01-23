@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import org.hibernate.mapping.Set;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,8 @@ public class App
         Person person1 = new Person();
         person1.setName("Marko Maric");
         contract.addPerson(person1);
+        contract.setTrajanjeUgovoraUGodinama(20);
+        contract.setIznosPlace(BigDecimal.valueOf(2000));
         Person person2 = new Person();
         person2.setName("Filip Filic");
         contract.addPerson(person2);

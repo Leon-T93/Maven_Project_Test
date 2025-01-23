@@ -40,8 +40,8 @@ import java.util.Set;
             return LocalDate;
         }
 
-        public void setLocalDate(Date localDate) {
-            LocalDate = localDate;
+        public void setDate(Date date) {
+            LocalDate = date;
         }
 
         public Integer getTrajanjeUgovoraUGodinama() {
