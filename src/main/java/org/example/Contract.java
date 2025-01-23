@@ -75,4 +75,8 @@ import java.util.Set;
         public void setPersons(Set<Person> persons) {
             this.persons = persons;
         }
+
+        public void addPerson(Person person) {
+            this.persons.add(person);
+        }
 }
