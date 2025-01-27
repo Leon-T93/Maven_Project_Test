@@ -2,6 +2,7 @@ package org.example;
 
 import jakarta.persistence.*;
 
+@Entity
 public class Grade {
 
     @Id
