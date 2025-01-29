@@ -10,94 +10,72 @@ import java.math.BigDecimal;
 
 public class App
 {
-    private static SessionFactory sessionFactory;
+    private static  SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 
     public static void main( String[] args )
     {
 
-        sessionFactory = new Configuration().configure().buildSessionFactory();
+        createProductOnCentralStorage(1,"Banana",1000);
+        createProductOnStorageArena(1,"Banana",500);
+
+        createProductOnCentralStorage(2,"Kiwi", 1500);
+        createProductOnStorageArena(2,"Kiwi", 100);
+
+        createProductOnCentralStorage(3,"Brokula", 100);
+        createProductOnStorageArena(3,"Brokula", 2);
+
+
+
 
 
 
     }
 
-    public static Product addProduct(String name, BigDecimal price) {
-        Session session = sessionFactory.openSession();
-        Transaction transaction = null;
 
-        Product product= new Product();
-        product.setName("Laptop");
-        product.setPrice(BigDecimal.valueOf(2000));
-
-        try {
-            transaction = session.beginTransaction();
-            session.persist(product);
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
-        }finally {
-            session.close();
-        }
-        return product;
+    public static void createProductOnCentralStorage(Integer proizvodID,String nazivProizvoda,Integer kolicinaProizvodaNaStanju) {
+        Session session= sessionFactory.openSession();
+        Transaction tx= session.beginTransaction();
+        CentralnoSkladiste centralnoSkladiste= new CentralnoSkladiste(proizvodID,nazivProizvoda,kolicinaProizvodaNaStanju);
+        session.persist(centralnoSkladiste);
+        tx.commit();
     }
 
-    // upitno jel to to
-    public static void selectProduct(Product product) {
-        Session session = sessionFactory.openSession();
-        Transaction transaction = null;
+    public static void createProductOnStorageArena(Integer proizvodID,String nazivProizvoda,Integer kolicinaProizvodaNaStanju) {
+        Session session= sessionFactory.openSession();
+        Transaction tx= session.beginTransaction();
+        SkladisteArena skladisteArena= new SkladisteArena(proizvodID,nazivProizvoda,kolicinaProizvodaNaStanju);
+        session.persist(skladisteArena);
+        tx.commit();
+    }
 
-        try {
-            transaction = session.beginTransaction();
-            Product managedProduct = session.find(Product.class, product.getId());
-            System.out.println("Product is: " + managedProduct);
-            transaction.commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            session.close();
+    public static CentralnoSkladiste findCentralProductByProductID(Integer proizvodID) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM CentralStorage WHERE proizvodID = ?";
+            return session.createQuery(hql, CentralnoSkladiste.class)
+                    .setParameter("1", proizvodID)
+                    .uniqueResult();
         }
     }
 
-    public static void deleteUser(Product product) {
-        Session session = sessionFactory.openSession();
-        Transaction transaction = null;
-
-        try {
-            transaction = session.beginTransaction();
-            Product managedProduct = session.find(Product.class, product.getId());
-            session.remove(managedProduct);
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction.isActive()) transaction.rollback();
-            e.printStackTrace();
-        } finally {
-            session.close();
+    public static SkladisteArena findArenaProductByProductID(Integer proizvodID) {
+        try (Session session = sessionFactory.openSession()) {
+            String hql = "FROM StorageArena WHERE proizvodID = ?";
+            return session.createQuery(hql, SkladisteArena.class)
+                    .setParameter("1", proizvodID)
+                    .uniqueResult();
         }
     }
 
 
-    public static Product updateProduct(String name, BigDecimal price) {
-        Session session = sessionFactory.openSession();
-        Transaction transaction = null;
+    public void transferProduct(Integer proizvodID, Integer kolicinaZaPrijenos) {
+        CentralnoSkladiste centralno = null;
+        SkladisteArena arena;
 
-
-        try {
-            transaction = session.beginTransaction();
-            
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
-        }finally {
-            session.close();
-        }
-        return product;
+        centralno.setId(proizvodID);
+        Integer stanjeProizvodaIzCentralong= centralno.getKolicinaProizvodaNaStanju();
     }
+
+
 
 
 }

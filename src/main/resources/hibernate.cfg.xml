@@ -17,6 +17,9 @@
         <property name="hibernate.format_sql">true</property>
         <property name="hibernate.hbm2ddl.auto">update</property>
 
+        <!-- Razina izolacije (1-read_uncommited,,2-read_commited,, 3-repeatable_read,, 4-serializable -->
+        <property name="hibernate.connection.isolation">2</property>
+
         <!-- Registracija entiteta -->
         <mapping class="org.example.Product"/>
     </session-factory>
