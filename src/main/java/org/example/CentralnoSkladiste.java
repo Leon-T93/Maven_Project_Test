@@ -2,6 +2,8 @@ package org.example;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "CentralStorage")
 public class CentralnoSkladiste {
@@ -17,9 +19,9 @@ public class CentralnoSkladiste {
     private String nazivProizvoda;
 
     @Column
-    private Integer kolicinaProizvodaNaStanju;
+    private BigDecimal kolicinaProizvodaNaStanju;
 
-    public CentralnoSkladiste(Integer proizvodID, String nazivProizvoda, Integer kolicinaProizvodaNaStanju) {
+    public CentralnoSkladiste(Integer proizvodID, String nazivProizvoda, BigDecimal kolicinaProizvodaNaStanju) {
         this.proizvodID = proizvodID;
         this.nazivProizvoda = nazivProizvoda;
         this.kolicinaProizvodaNaStanju = kolicinaProizvodaNaStanju;
@@ -44,11 +46,11 @@ public class CentralnoSkladiste {
         this.nazivProizvoda = nazivProizvoda;
     }
 
-    public Integer getKolicinaProizvodaNaStanju() {
+    public BigDecimal getKolicinaProizvodaNaStanju() {
         return kolicinaProizvodaNaStanju;
     }
 
-    public void setKolicinaProizvodaNaStanju(Integer kolicinaProizvodaNaStanju) {
+    public void setKolicinaProizvodaNaStanju(BigDecimal kolicinaProizvodaNaStanju) {
         this.kolicinaProizvodaNaStanju = kolicinaProizvodaNaStanju;
     }
 
@@ -58,5 +60,14 @@ public class CentralnoSkladiste {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return "CentralnoSkladiste{" +
+                "proizvodID=" + proizvodID +
+                ", nazivProizvoda='" + nazivProizvoda + '\'' +
+                ", kolicinaProizvodaNaStanju=" + kolicinaProizvodaNaStanju +
+                '}';
     }
 }
