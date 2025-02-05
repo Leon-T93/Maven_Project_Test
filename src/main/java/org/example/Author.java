@@ -2,7 +2,10 @@ package org.example;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Entity
 public class Author {
@@ -14,7 +17,7 @@ public class Author {
     private String name;
 
     @OneToMany(mappedBy = "author")
-    private Set<Book> books;
+    private Set<Book> books = new HashSet<>();
 
 
     public Author() {

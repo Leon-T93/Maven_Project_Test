@@ -2,6 +2,7 @@ package org.example;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -19,7 +20,7 @@ public class Publisher {
             joinColumns = @JoinColumn(name = "published_id"),
             inverseJoinColumns = @JoinColumn (name = "book_id")
     )
-    private Set<Book> books;
+    private Set<Book> books = new HashSet<>();
 
 
     public Publisher() {
