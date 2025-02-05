@@ -21,6 +21,8 @@
         <property name="hibernate.connection.isolation">2</property>
 
         <!-- Registracija entiteta -->
-        <mapping class="org.example.Product"/>
+        <mapping class="org.example.Author"/>
+        <mapping class="org.example.Book"/>
+        <mapping class="org.example.Publisher"/>
     </session-factory>
 </hibernate-configuration>

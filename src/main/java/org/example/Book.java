@@ -2,6 +2,8 @@ package org.example;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 public class Book {
 
@@ -14,6 +16,10 @@ public class Book {
     @ManyToOne
     @JoinColumn (name = "author_id")
     private Author author;
+
+    @ManyToMany (mappedBy = "books")
+    private Set<Publisher> publishers;
+
 
     public Book() {
     }
@@ -40,5 +46,17 @@ public class Book {
 
     public void setAuthor(Author author) {
         this.author = author;
+    }
+
+    public Set<Publisher> getPublishers() {
+        return publishers;
+    }
+
+    public void setPublishers(Set<Publisher> publishers) {
+        this.publishers = publishers;
+    }
+
+    public void addPublisher(Publisher publisher) {
+        this.publishers.add(publisher);
     }
 }

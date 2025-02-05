@@ -15,11 +15,11 @@ public class Publisher {
 
     @ManyToMany
     @JoinTable(
-            name = "publisher_author",
+            name = "publisher_book",
             joinColumns = @JoinColumn(name = "published_id"),
-            inverseJoinColumns = @JoinColumn (name = "author_id")
+            inverseJoinColumns = @JoinColumn (name = "book_id")
     )
-    private Set<Author> authors;
+    private Set<Book> books;
 
 
     public Publisher() {
@@ -41,15 +41,15 @@ public class Publisher {
         this.name = name;
     }
 
-    public Set<Author> getAuthors() {
-        return authors;
+    public Set<Book> getBooks() {
+        return books;
     }
 
-    public void setAuthors(Set<Author> authors) {
-        this.authors = authors;
+    public void setBooks(Set<Book> books) {
+        this.books = books;
     }
 
-    public void addAuthor(Author author) {
-        this.authors.add(author);
+    public void addBook(Book book) {
+        this.books.add(book);
     }
 }

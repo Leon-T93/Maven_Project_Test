@@ -16,8 +16,6 @@ public class Author {
     @OneToMany(mappedBy = "author")
     private Set<Book> books;
 
-    @ManyToMany (mappedBy = "authors")
-    private Set<Publisher> publishers;
 
     public Author() {
     }
@@ -47,17 +45,7 @@ public class Author {
         this.books = books;
     }
 
-    public Set<Publisher> getPublishers() {
-        return publishers;
-    }
 
-    public void setPublishers(Set<Publisher> publishers) {
-        this.publishers = publishers;
-    }
-
-    public void addPublisher(Publisher publisher) {
-        this.publishers.add(publisher);
-    }
 
     public void addBook(Book book) {
         this.books.add(book);

@@ -1,15 +1,12 @@
 package org.example;
 
-import org.hibernate.Hibernate;
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
 
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,12 +21,17 @@ public class App
         createAuthor_Book_Publisher("Pero Peric", "Dan po noci", "Marvel");
 
 
+
+
+
+
+
     }
 
 
 
     public static void createAuthor_Book_Publisher(String authorName,String bookTitle,String publisherName) {
-        Session session= sessionFactory.openSession();
+        EntityManager em= JpaUtil.getEntityManagerFactory();
 
         Author author= new Author();
         author.setName(authorName);
@@ -42,50 +44,52 @@ public class App
 
         Publisher publisher= new Publisher();
         publisher.setName(publisherName);
-        publisher.addAuthor(author);
-        author.addPublisher(publisher);
+        publisher.addBook(book);
+        book.addPublisher(publisher);
 
 
-
-
-
-        session.persist(author);
-        session.persist(book);
-        session.persist(publisher);
-        session.close();
+        em.close();
     }
 
 
-    public static List dohvacanjeSvihAutoraIKnjiga () {
-        Session session = sessionFactory.openSession();
-        Query query = session.createQuery("SELECT FROM Author a LEFT OUTER JOIN Book b ON a.id=b.id");
+    public static List<Author> dohvacanjeSvihAutoraIKnjiga () {
+        EntityManager em= JpaUtil.getEntityManagerFactory();
 
-        return query.list();
+        String jpql="SELECT a FROM Author a LEFT OUTER JOIN Book b";
+        TypedQuery<Author> query = em.createQuery(jpql, Author.class);
+        List<Author> authors = query.getResultList();
+        em.close();
+        return authors;
     }
 
 
-    public static void azuriranjeKnjigePoIDu (Integer ID,String noviNaslov) {
-        Session session= sessionFactory.openSession();
+    public static void azuriranjeKnjigePoIDu (Long ID,String noviNaslov) {
+        EntityManager em= JpaUtil.getEntityManagerFactory();
+        em.getTransaction().begin();
 
-        Query query=session.createQuery("UPDATE Book b WHERE b.id=:idKnjigeZaUpdate SET b.title= :noviNaslov ");
-        query.setParameter("idKnjigeZaUpdate",ID);
-        query.setParameter("noviNaslov", noviNaslov);
-        int queryResult= query.executeUpdate();
+        String jpql = "UPDATE Book b SET b.title= :noviNaslov WHERE b.id= :id";
+        Query query= em.createQuery(jpql);
+        query.setParameter("noviNaslov",noviNaslov);
+        query.setParameter("id",ID);
+        query.executeUpdate();
 
-        session.close();
+        em.getTransaction().commit();
+        em.close();
     }
 
 
 
-    public static void brisanjeKnjigePoIDu (Integer ID) {
-        Session session= sessionFactory.openSession();
+    public static void brisanjeKnjigePoIDu (Long ID) {
+        EntityManager em= JpaUtil.getEntityManagerFactory();
+        em.getTransaction().begin();
 
-        Query query=session.createQuery("DELETE FROM Book b WHERE b.id=:idKnjigeZaBrisanje");
-        query.setParameter("idKnjigeZaBrisanje",ID);
-        int queryResult= query.executeUpdate();
+        String jpql = "DELETE FROM Book b WHERE b.id = :id";
+        Query query=em.createQuery(jpql);
+        query.setParameter("id",ID);
+        query.executeUpdate();
 
-
-        session.close();
+        em.getTransaction().commit();
+        em.close();
     }
 
 
