@@ -54,4 +54,12 @@ public class Author {
     public void setPublishers(Set<Publisher> publishers) {
         this.publishers = publishers;
     }
+
+    public void addPublisher(Publisher publisher) {
+        this.publishers.add(publisher);
+    }
+
+    public void addBook(Book book) {
+        this.books.add(book);
+    }
 }
