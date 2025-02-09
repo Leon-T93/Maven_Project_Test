@@ -1,10 +1,12 @@
 package org.example;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
 
 
 import java.util.ArrayList;
@@ -30,10 +32,13 @@ public class App
 
         getAllOrdersWithProducts();
 
-        updateProductInOrder(1L,4L,"Gaming TV", 10000.00);
+        updateProductInOrder(2L,6L,"Gaming TV", 10000.00);
 
-        deleteOrder(1L);
+        getAllOrdersWithProducts();
 
+        deleteOrder(2L);
+
+        getAllOrdersWithProducts();
 
 
 
@@ -44,74 +49,115 @@ public class App
 
 
     public static void addOrderWithProducts(String customerName, List<Product> products) {
-        EntityManager em = JpaUtil.getEntityManagerFactory();
-        em.getTransaction().begin();
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction transaction = null;
 
-        CustomerOrder order = new CustomerOrder();
-        order.setCustomerName(customerName);
+        try {
+            transaction = session.beginTransaction();
 
+            CustomerOrder order = new CustomerOrder();
+            order.setCustomerName(customerName);
+            session.persist(order);
 
-        for (Product product : products) {
-            product.setCustomerorder(order);
-            em.persist(product);
+            for (Product product : products) {
+                product.setCustomerorder(order);
+                session.persist(product);
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
         }
-
-        em.persist(order);
-
-
-        em.getTransaction().commit();
-        em.close();
     }
+
+
+
 
 
     public static void getAllOrdersWithProducts() {
-        EntityManager em = JpaUtil.getEntityManagerFactory();
+        Session session = HibernateUtil.getSessionFactory().openSession();
 
-        String jpql = "SELECT c FROM CustomerOrder c";
+        try {
+            String hql = "FROM CustomerOrder";
+            Query<CustomerOrder> query = session.createQuery(hql, CustomerOrder.class);
 
-        TypedQuery<CustomerOrder> query = em.createQuery(jpql, CustomerOrder.class);
-        List<CustomerOrder> orders = query.getResultList();
+            List<CustomerOrder> orders = query.list();
 
-        for (CustomerOrder order : orders) {
-            System.out.println("Order ID: " + order.getId() + ", Customer: " + order.getCustomerName());
+            for (CustomerOrder order : orders) {
+                System.out.println("Order ID: " + order.getId());
+                System.out.println("Customer: " + order.getCustomerName());
+                System.out.println("Products:");
 
-            for (Product product : order.getProducts()) {
-                System.out.println("    Product: " + product.getName() +", ID: "+ product.getId() + ", Price: " + product.getPrice());
+                for (Product product : order.getProducts()) {
+                    System.out.println("-Name " + product.getName() + " -Price " + product.getPrice()+" -ID " + product.getId());
+                }
             }
+        } finally {
+            session.close();
         }
-
-        em.close();
     }
+
 
 
     public static void updateProductInOrder(Long orderId, Long productId, String newName, Double newPrice) {
-        EntityManager em = JpaUtil.getEntityManagerFactory();
-        em.getTransaction().begin();
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction transaction = null;
 
-        CustomerOrder order = em.find(CustomerOrder.class, orderId);
+        try {
+            transaction = session.beginTransaction();
 
-        Product product = em.find(Product.class, productId);
+            String hql = "FROM Product p WHERE p.customerorder.id = :orderId AND p.id = :productId";
+            Product productToUpdate = session.createQuery(hql, Product.class)
+                    .setParameter("orderId", orderId)
+                    .setParameter("productId", productId)
+                    .uniqueResult();
 
-        product.setName(newName);
-        product.setPrice(newPrice);
 
-        em.merge(product);
+            productToUpdate.setName(newName);
+            productToUpdate.setPrice(newPrice);
+            session.merge(productToUpdate);
 
-        em.getTransaction().commit();
-        em.close();
 
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
     }
 
+
+
     public static void deleteOrder(Long orderId) {
-        EntityManager em = JpaUtil.getEntityManagerFactory();
-        em.getTransaction().begin();
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction transaction = null;
 
-        CustomerOrder order = em.find(CustomerOrder.class, orderId);
+        try {
+            transaction = session.beginTransaction();
 
-        em.remove(order);
+            CustomerOrder order = session.get(CustomerOrder.class, orderId);
 
-        em.getTransaction().commit();
-        em.close();
+
+            session.remove(order);
+
+
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
     }
 
 
