@@ -7,62 +7,56 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class App
 {
-    private static  SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 
     public static void main( String[] args )
     {
 
+        List<Product> products = new ArrayList<>();
 
-        createAuthor_Book_Publisher("Marko Maric", "Mrak po danu", "DC");
-        createAuthor_Book_Publisher("Pero Peric", "Dan po noci", "Marvel");
+        Product product1 = new Product("Gaming PC", 50000.00);
+        Product product2 = new Product("Gaming Monitor", 5000.00);
+
+        products.add(product1);
+        products.add(product2);
+
+        addOrderWithProducts("Marko Markic", products);
 
 
-        dohvacanjeSvihAutoraIKnjiga();
+        getAllOrdersWithProducts();
 
-        azuriranjeKnjigePoIDu(1L,"Mrak po danu");
+        updateProductInOrder(1L,4L,"Gaming TV", 10000.00);
 
-        dohvacanjeSvihAutoraIKnjiga();
+        deleteOrder(1L);
 
-        brisanjeKnjigePoIDu(2L);
 
-        dohvacanjeSvihAutoraIKnjiga();
+
+
 
 
 
     }
 
 
-
-    public static void createAuthor_Book_Publisher(String authorName,String bookTitle,String publisherName) {
-        EntityManager em= JpaUtil.getEntityManagerFactory();
+    public static void addOrderWithProducts(String customerName, List<Product> products) {
+        EntityManager em = JpaUtil.getEntityManagerFactory();
         em.getTransaction().begin();
 
-        Author author= new Author();
-        author.setName(authorName);
+        CustomerOrder order = new CustomerOrder();
+        order.setCustomerName(customerName);
 
 
+        for (Product product : products) {
+            product.setCustomerorder(order);
+            em.persist(product);
+        }
 
-        Book book= new Book();
-        book.setTitle(bookTitle);
-        book.setAuthor(author);
-        author.addBook(book);
-
-
-        Publisher publisher= new Publisher();
-        publisher.setName(publisherName);
-        publisher.addBook(book);
-        book.addPublisher(publisher);
-
-
-
-        em.persist(author);
-        em.persist(book);
-        em.persist(publisher);
+        em.persist(order);
 
 
         em.getTransaction().commit();
@@ -70,58 +64,57 @@ public class App
     }
 
 
-    public static List<Author> dohvacanjeSvihAutoraIKnjiga () {
-        EntityManager em= JpaUtil.getEntityManagerFactory();
+    public static void getAllOrdersWithProducts() {
+        EntityManager em = JpaUtil.getEntityManagerFactory();
 
-        String jpql="SELECT a FROM Author a LEFT OUTER JOIN FETCH a.books ";
-        TypedQuery<Author> query = em.createQuery(jpql, Author.class);
-        List<Author> authors = query.getResultList();
-        em.close();
+        String jpql = "SELECT c FROM CustomerOrder c";
 
-        for (Author author : authors) {
-            System.out.println("Id: " + author.getId());
-            System.out.println("Author: " + author.getName());
-            if (author.getBooks() != null && !author.getBooks().isEmpty()) {
-                for (Book book : author.getBooks()) {
-                    System.out.println("    Id: " + book.getId());
-                    System.out.println("    Book: " + book.getTitle());
-                }
-            } else {
-                System.out.println("    Ovaj autor nema knjiga.");
+        TypedQuery<CustomerOrder> query = em.createQuery(jpql, CustomerOrder.class);
+        List<CustomerOrder> orders = query.getResultList();
+
+        for (CustomerOrder order : orders) {
+            System.out.println("Order ID: " + order.getId() + ", Customer: " + order.getCustomerName());
+
+            for (Product product : order.getProducts()) {
+                System.out.println("    Product: " + product.getName() +", ID: "+ product.getId() + ", Price: " + product.getPrice());
             }
         }
-        return authors;
+
+        em.close();
     }
 
 
-    public static void azuriranjeKnjigePoIDu (Long ID,String noviNaslov) {
-        EntityManager em= JpaUtil.getEntityManagerFactory();
+    public static void updateProductInOrder(Long orderId, Long productId, String newName, Double newPrice) {
+        EntityManager em = JpaUtil.getEntityManagerFactory();
         em.getTransaction().begin();
 
-        String jpql = "UPDATE Book b SET b.title= :noviNaslov WHERE b.id= :id";
-        Query query= em.createQuery(jpql);
-        query.setParameter("noviNaslov",noviNaslov);
-        query.setParameter("id",ID);
-        query.executeUpdate();
+        CustomerOrder order = em.find(CustomerOrder.class, orderId);
+
+        Product product = em.find(Product.class, productId);
+
+        product.setName(newName);
+        product.setPrice(newPrice);
+
+        em.merge(product);
+
+        em.getTransaction().commit();
+        em.close();
+
+    }
+
+    public static void deleteOrder(Long orderId) {
+        EntityManager em = JpaUtil.getEntityManagerFactory();
+        em.getTransaction().begin();
+
+        CustomerOrder order = em.find(CustomerOrder.class, orderId);
+
+        em.remove(order);
 
         em.getTransaction().commit();
         em.close();
     }
 
 
-
-    public static void brisanjeKnjigePoIDu (Long ID) {
-        EntityManager em= JpaUtil.getEntityManagerFactory();
-        em.getTransaction().begin();
-
-        String jpql = "DELETE FROM Book b WHERE b.id = :id";
-        Query query=em.createQuery(jpql);
-        query.setParameter("id",ID);
-        query.executeUpdate();
-
-        em.getTransaction().commit();
-        em.close();
-    }
 
 
 
