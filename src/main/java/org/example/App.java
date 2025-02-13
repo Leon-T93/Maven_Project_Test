@@ -11,6 +11,7 @@ import org.hibernate.query.Query;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 
 public class App
@@ -19,26 +20,49 @@ public class App
     public static void main( String[] args )
     {
 
-        List<Product> products = new ArrayList<>();
+        Scanner scanner= new Scanner(System.in);
 
-        Product product1 = new Product("Gaming PC", 50000.00);
-        Product product2 = new Product("Gaming Monitor", 5000.00);
+        textZaIzbor();
 
-        products.add(product1);
-        products.add(product2);
+        int odabir;
+        odabir= scanner.nextInt();
 
-        addOrderWithProducts("Marko Markic", products);
+        while (odabir < 6) {
+            switch (odabir) {
+                case 1:
+                    unosNovogPolaznika();
+
+                    break;
+
+                case 2:
+                    unosNovogProgramaObrazovanja();
+
+                    break;
+
+                case 3:
+                    upisPolaznikaNaProgramObrazovanja();
+
+                    break;
+
+                case 4:
+                    prebacivanjePolaznikaIzProgramaUProgram();
+
+                    break;
+
+                case 5:
+                    ispisInformacijaOPolaznicimaUOdredenomProgramu();
+
+                    break;
 
 
-        getAllOrdersWithProducts();
+            }
 
-        updateProductInOrder(2L,6L,"Gaming TV", 10000.00);
+            textZaIzbor();
+            odabir = scanner.nextInt();
 
-        getAllOrdersWithProducts();
+        }
 
-        deleteOrder(2L);
 
-        getAllOrdersWithProducts();
 
 
 
@@ -47,25 +71,71 @@ public class App
 
     }
 
+    private static void textZaIzbor() {
+        System.out.println("\n" +"Odaberite jednu od sljedečih opcija: " + "\n" +
+                "(1) za unos novog polaznika" + "\n" +
+                "(2) za unos novog programa obrazovanja" + "\n" +
+                "(3) za upis polaznika na program obrazovanja" + "\n" +
+                "(4) za prebacivanje polaznika iz jednog u drugi program obrazovanja" + "\n" +
+                "(5) za ispis informacija za određeni program obrazovanja" + "\n" +
+                "(6) za izlaz");
+    }
 
-    public static void addOrderWithProducts(String customerName, List<Product> products) {
+    public static void unosNovogPolaznika() {
+        Scanner scanner = new Scanner(System.in);
+
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction transaction = null;
 
         try {
             transaction = session.beginTransaction();
 
-            CustomerOrder order = new CustomerOrder();
-            order.setCustomerName(customerName);
-            session.persist(order);
+            System.out.println("Unesite ime novog polaznika: ");
+            String ime = scanner.next();
+            System.out.println("Unesite prezime novog polaznika: ");
+            String prezime = scanner.next();
 
-            for (Product product : products) {
-                product.setCustomerorder(order);
-                session.persist(product);
-            }
+            Polaznik polaznik = new Polaznik();
+            polaznik.setIme(ime);
+            polaznik.setPrezime(prezime);
+
+            session.persist(polaznik);
 
             transaction.commit();
-        } catch (Exception e) {
+        }catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+    }
+
+    private static void unosNovogProgramaObrazovanja() {
+        Scanner scanner = new Scanner(System.in);
+
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+
+            System.out.println("Unesite naziv novog programa: ");
+            String naziv = scanner.next();
+            System.out.println("Unesite CSVET broj: ");
+            int csvet = scanner.nextInt();
+
+            ProgramObrazovanja programObrazovanja= new ProgramObrazovanja();
+            programObrazovanja.setNaziv(naziv);
+            programObrazovanja.setCsvet(csvet);
+
+            session.persist(programObrazovanja);
+
+            transaction.commit();
+
+        }catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
@@ -76,55 +146,84 @@ public class App
     }
 
 
+    private static void upisPolaznikaNaProgramObrazovanja() {
+        Scanner scanner = new Scanner(System.in);
 
-
-
-    public static void getAllOrdersWithProducts() {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-
-        try {
-            String hql = "FROM CustomerOrder";
-            Query<CustomerOrder> query = session.createQuery(hql, CustomerOrder.class);
-
-            List<CustomerOrder> orders = query.list();
-
-            for (CustomerOrder order : orders) {
-                System.out.println("Order ID: " + order.getId());
-                System.out.println("Customer: " + order.getCustomerName());
-                System.out.println("Products:");
-
-                for (Product product : order.getProducts()) {
-                    System.out.println("-Name " + product.getName() + " -Price " + product.getPrice()+" -ID " + product.getId());
-                }
-            }
-        } finally {
-            session.close();
-        }
-    }
-
-
-
-    public static void updateProductInOrder(Long orderId, Long productId, String newName, Double newPrice) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction transaction = null;
 
         try {
             transaction = session.beginTransaction();
 
-            String hql = "FROM Product p WHERE p.customerorder.id = :orderId AND p.id = :productId";
-            Product productToUpdate = session.createQuery(hql, Product.class)
-                    .setParameter("orderId", orderId)
-                    .setParameter("productId", productId)
+            ispisSvihPolaznika();
+            System.out.println("Odaberite ID polaznika kojeg želite upisati: ");
+            int idPolaznika= scanner.nextInt();
+
+            ispisSvihProgramaObrazovanja();
+            System.out.println("Odaberite ID programa u koji želite upisati polaznika: ");
+            int idProgramaObrazovanja= scanner.nextInt();
+
+            Polaznik polaznik = session.get(Polaznik.class,idPolaznika);
+            ProgramObrazovanja programObrazovanja= session.get(ProgramObrazovanja.class,idProgramaObrazovanja);
+
+            Upis upis = new Upis();
+            upis.setPolaznik(polaznik);
+            upis.setProgramObrazovanja(programObrazovanja);
+
+            session.persist(upis);
+
+            transaction.commit();
+
+        }catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+    }
+
+    private static void prebacivanjePolaznikaIzProgramaUProgram () {
+        Scanner scanner = new Scanner(System.in);
+
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Transaction transaction = null;
+
+        try {
+            transaction = session.beginTransaction();
+
+            ispisSvihPolaznika();
+            System.out.println("Unesite ID polaznika kojem želite promjeniti program: ");
+            int idPolaznika= scanner.nextInt();
+
+            ispisSvihProgramaObrazovanja();
+            System.out.println("Unesite ID programa iz kojeg želite ISPISATI polaznika: ");
+            int idProgramaZaIspis= scanner.nextInt();
+
+            ispisSvihProgramaObrazovanja();
+            System.out.println("Unesite ID programa u koji želite UPISATI polaznika: ");
+            int idProgramaZaUpis= scanner.nextInt();
+
+            Polaznik polaznik = session.get(Polaznik.class, idPolaznika);
+            ProgramObrazovanja programZaIspis = session.get(ProgramObrazovanja.class, idProgramaZaIspis);
+            ProgramObrazovanja programZaUpis = session.get(ProgramObrazovanja.class, idProgramaZaUpis);
+
+
+            String hql = "FROM Upis WHERE polaznik = :polaznik AND programObrazovanja = :programZaIspis";
+            Upis upis = session.createQuery(hql, Upis.class)
+                    .setParameter("polaznik", polaznik)
+                    .setParameter("programZaIspis", programZaIspis)
                     .uniqueResult();
 
-
-            productToUpdate.setName(newName);
-            productToUpdate.setPrice(newPrice);
-            session.merge(productToUpdate);
-
+            upis.setProgramObrazovanja(programZaUpis);
+            session.persist(upis);
 
             transaction.commit();
-        } catch (Exception e) {
+
+
+        }catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
@@ -134,35 +233,86 @@ public class App
         }
     }
 
+    private static void ispisInformacijaOPolaznicimaUOdredenomProgramu() {
+        Scanner scanner = new Scanner(System.in);
 
-
-    public static void deleteOrder(Long orderId) {
         Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = null;
 
         try {
-            transaction = session.beginTransaction();
+            ispisSvihProgramaObrazovanja();
+            System.out.println("Unesite ID od programa za koji želite ispis informacija: ");
+            int idProgramaObrazovanja= scanner.nextInt();
 
-            CustomerOrder order = session.get(CustomerOrder.class, orderId);
+            String hql = "SELECT p.Ime+' '+p.Prezime AS Polaznik, po.Naziv AS ProgramObrazovanja, po.CSVET AS CSVET FROM Upis AS u LEFT JOIN Polaznik AS p ON p.PolaznikID= u.IDPolaznik LEFT JOIN ProgramObrazovanja AS po ON po.ProgramObrazovanjaID = u.IDProgramObrazovanja WHERE u.IDProgramObrazovanja = :idProgramaObrazovanja";
 
 
-            session.remove(order);
-
-
-            transaction.commit();
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
+        }catch (Exception e) {
             e.printStackTrace();
         } finally {
             session.close();
         }
+
+
     }
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private static void ispisSvihPolaznika() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        try {
+            String hql = "FROM Polaznik";
+            Query<Polaznik> query = session.createQuery(hql, Polaznik.class);
+
+            List<Polaznik> polaznici = query.getResultList();
+
+            System.out.println("POLAZNICI SU: ");
+            for (Polaznik polaznik : polaznici) {
+                System.out.println("ID: " + polaznik.getId() + " ---- Polaznik: " + polaznik.getIme() + " " + polaznik.getPrezime());
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+
+    }
+
+    private static void ispisSvihProgramaObrazovanja() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        try {
+            String hql = "FROM ProgramObrazovanja";
+            Query<ProgramObrazovanja> query = session.createQuery(hql, ProgramObrazovanja.class);
+
+            List<ProgramObrazovanja> programi = query.getResultList();
+
+            System.out.println("PROGRAMI SU: ");
+            for (ProgramObrazovanja program : programi) {
+                System.out.println("ID: " + program.getId() + " ----  Naziv: " + program.getNaziv() + " ----  CSVET: " + program.getCsvet());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            session.close();
+        }
+    }
 
 
 }
