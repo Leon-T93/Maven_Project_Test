@@ -238,12 +238,32 @@ public class App
 
         Session session = HibernateUtil.getSessionFactory().openSession();
 
+        Transaction transaction = null;
+
         try {
+            transaction = session.beginTransaction();
+
             ispisSvihProgramaObrazovanja();
             System.out.println("Unesite ID od programa za koji želite ispis informacija: ");
             int idProgramaObrazovanja= scanner.nextInt();
 
-            String hql = "SELECT p.Ime+' '+p.Prezime AS Polaznik, po.Naziv AS ProgramObrazovanja, po.CSVET AS CSVET FROM Upis AS u LEFT JOIN Polaznik AS p ON p.PolaznikID= u.IDPolaznik LEFT JOIN ProgramObrazovanja AS po ON po.ProgramObrazovanjaID = u.IDProgramObrazovanja WHERE u.IDProgramObrazovanja = :idProgramaObrazovanja";
+            ProgramObrazovanja program = session.get(ProgramObrazovanja.class, idProgramaObrazovanja);
+
+
+
+            String hql = "FROM Upis u LEFT JOIN u.polaznik p LEFT JOIN u.programObrazovanja po WHERE u.programObrazovanja.id = :idProgramaObrazovanja";
+            List<Upis> upisiList = session.createQuery(hql, Upis.class)
+                    .setParameter("idProgramaObrazovanja", idProgramaObrazovanja)
+                    .getResultList();
+
+            System.out.println("Polaznici programa " + program.getNaziv()+" su: ");
+
+            for (Upis upis : upisiList) {
+                System.out.println(upis.getPolaznik().getIme()+ " "+ upis.getPolaznik().getPrezime());
+            }
+
+            transaction.commit();
+
 
 
         }catch (Exception e) {
